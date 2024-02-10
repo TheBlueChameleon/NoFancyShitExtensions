@@ -81,6 +81,7 @@ include_directories(${GTestIncludes})
 add_executable(NFSE-test
     main.cpp
 
+    unittest/compiletest/compiletest.cpp
     unittest/polymorphicvalue/ctor.cpp
 
     ${GTestFiles}

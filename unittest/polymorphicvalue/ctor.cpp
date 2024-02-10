@@ -6,7 +6,6 @@
 using namespace testing;
 using namespace NFSE;
 
-// TODO: Add Test Framework for can/cannot be compiled tests
 struct InstanceCountTrackable
 {
     int& instanceCount;
