@@ -40,6 +40,14 @@ namespace NFSE
     }
 
     template<typename T, bool enableDefaultCTor>
+    template<class ... Args>
+    PolymorphicValue<T, enableDefaultCTor>
+    PolymorphicValue<T, enableDefaultCTor>::makeFrom(Args&& ... args)
+    {
+        return PolymorphicValue<T, enableDefaultCTor>(new T(args ...));
+    }
+
+    template<typename T, bool enableDefaultCTor>
     T* const PolymorphicValue<T, enableDefaultCTor>::expose() const
     {
         return this->value;

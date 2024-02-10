@@ -3,6 +3,8 @@
 
 #include "nfse.h"
 
+#define LOCAL_CONST 1337 /* an arbitrary rvalue */
+
 using namespace testing;
 using namespace NFSE;
 
@@ -30,6 +32,28 @@ struct InstanceCountTrackable
     ~InstanceCountTrackable()
     {
         --instanceCount;
+    }
+};
+
+struct CTorInvocationTrackable
+{
+    int& instanceCount;
+
+    CTorInvocationTrackable(const CTorInvocationTrackable& other) :
+        instanceCount(other.instanceCount)
+    {
+        ++instanceCount;
+    }
+
+    CTorInvocationTrackable(const CTorInvocationTrackable&& other) :
+        instanceCount(other.instanceCount)
+    {
+        ++instanceCount;
+    }
+
+    CTorInvocationTrackable(int& refCount) : instanceCount(refCount)
+    {
+        ++refCount;
     }
 };
 
@@ -66,11 +90,9 @@ TEST(PolymorphicValue_Suite, PMV_CopyCTor_Test)
 
 TEST(PolymorphicValue_Suite, PMV_MoveCTor_Test)
 {
-#define LOCAL_CONST 1337
     auto defPmv = PolymorphicValue(LOCAL_CONST);
     ASSERT_NE(defPmv.expose(), nullptr);
     EXPECT_EQ(*defPmv.expose(), LOCAL_CONST);
-#undef LOCAL_CONST
 
     int instanceCount = 0;
     {
@@ -80,4 +102,17 @@ TEST(PolymorphicValue_Suite, PMV_MoveCTor_Test)
         EXPECT_EQ(instanceCount, 1);
     }
     ASSERT_EQ(instanceCount, 0);
+}
+
+TEST(PolymorphicValue_Suite, PMV_EmplaceCTor_Test)
+{
+    int instanceCount = 0;
+    auto pmv = PolymorphicValue<CTorInvocationTrackable>::makeFrom(instanceCount);
+    ASSERT_NE(pmv.expose(), nullptr);
+    EXPECT_EQ(pmv.expose()->instanceCount, 1);
+
+    instanceCount = 0;
+    auto copyPmv = PolymorphicValue(CTorInvocationTrackable(instanceCount));
+    ASSERT_NE(copyPmv.expose(), nullptr);
+    EXPECT_EQ(copyPmv.expose()->instanceCount, 2);
 }

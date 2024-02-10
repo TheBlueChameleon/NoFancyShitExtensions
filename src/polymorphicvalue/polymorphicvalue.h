@@ -20,6 +20,9 @@ namespace NFSE
             PolymorphicValue(const T& init);
             PolymorphicValue(const T&& init);
 
+            template<class ... Args>
+            static PolymorphicValue makeFrom(Args&& ... args);
+
             T* const expose() const;
     };
 
