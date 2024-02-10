@@ -18,6 +18,7 @@ add_library(NFSE-lib STATIC
     codestyle.astylerc
 
     src/nfse.h src/nfse.cpp
+    src/polymorphicvalue/polymorphicvalue.h src/polymorphicvalue/polymorphicvalue.txx
 )
 
 target_include_directories(NFSE-lib PUBLIC
@@ -79,6 +80,8 @@ include_directories(${GTestIncludes})
 
 add_executable(NFSE-test
     main.cpp
+
+    unittest/polymorphicvalue/ctor.cpp
 
     ${GTestFiles}
 )

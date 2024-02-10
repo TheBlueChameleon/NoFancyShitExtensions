@@ -1,9 +1,9 @@
-#include <iostream>
+#include <gtest/gtest.h>
 
-using namespace std;
+#include "nfse.h"
 
-int main()
+int main(int argc, char* argv[])
 {
-    cout << "Hello World!" << endl;
-    return 0;
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
