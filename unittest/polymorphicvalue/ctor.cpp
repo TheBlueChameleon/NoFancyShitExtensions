@@ -64,7 +64,7 @@ TEST(PolymorphicValue_Suite, PMV_DefaultCTor_Test)
     EXPECT_EQ(*pmv.expose(), 0);
 }
 
-TEST(PolymorphicValue_Suite, PMV_CopyCTor_Test)
+TEST(PolymorphicValue_Suite, PMV_CopyValueCTor_Test)
 {
     int value = 1337;
 
@@ -88,7 +88,7 @@ TEST(PolymorphicValue_Suite, PMV_CopyCTor_Test)
     EXPECT_EQ(instanceCount, 0);
 }
 
-TEST(PolymorphicValue_Suite, PMV_MoveCTor_Test)
+TEST(PolymorphicValue_Suite, PMV_MoveValueCTor_Test)
 {
     auto defPmv = PolymorphicValue(LOCAL_CONST);
     ASSERT_NE(defPmv.expose(), nullptr);
@@ -115,4 +115,59 @@ TEST(PolymorphicValue_Suite, PMV_EmplaceCTor_Test)
     auto copyPmv = PolymorphicValue(CTorInvocationTrackable(instanceCount));
     ASSERT_NE(copyPmv.expose(), nullptr);
     EXPECT_EQ(copyPmv.expose()->instanceCount, 2);
+}
+
+TEST(PolymorphicValue_Suite, PMV_CopyPmvCTor_NonClassType_Test)
+{
+    auto pmvA = PolymorphicValue(LOCAL_CONST);
+    auto pmvB = PolymorphicValue(pmvA);
+
+    ASSERT_NE(pmvA.expose(), nullptr);
+    ASSERT_NE(pmvB.expose(), nullptr);
+    EXPECT_NE(pmvA.expose(), pmvB.expose());
+    EXPECT_EQ(*pmvA.expose(), *pmvB.expose());
+    EXPECT_EQ(*pmvA.expose(), LOCAL_CONST);
+}
+
+TEST(PolymorphicValue_Suite, PMV_CopyPmvCTor_ClassType_Test)
+{
+    int instanceCount = 0;
+    auto pmvA = PolymorphicValue(InstanceCountTrackable(instanceCount));
+    auto pmvB = PolymorphicValue(pmvA);
+
+    ASSERT_NE(pmvA.expose(), nullptr);
+    ASSERT_NE(pmvB.expose(), nullptr);
+    EXPECT_NE(pmvA.expose(), pmvB.expose());
+    EXPECT_EQ(pmvA.expose()->instanceCount, pmvB.expose()->instanceCount);
+    EXPECT_EQ(instanceCount, 2);
+}
+
+TEST(PolymorphicValue_Suite, PMV_MovePmvCTor_NonClassType_Test)
+{
+    auto pmvA = PolymorphicValue(LOCAL_CONST);
+    auto pmvB = PolymorphicValue(std::move(pmvA));
+
+    ASSERT_EQ(pmvA.expose(), nullptr);
+    ASSERT_NE(pmvB.expose(), nullptr);
+    EXPECT_EQ(*pmvB.expose(), LOCAL_CONST);
+}
+
+struct Base {};
+
+struct Derived : public Base {};
+
+TEST(PolymorphicValue_Suite, PMV_CopyPmvCTor_UnrelatedType_Test)
+{
+    auto pmvBase = PolymorphicValue(Base());
+    auto pmvDerived = PolymorphicValue<Base>(Derived());
+
+    //ASSERT_EQ(typeid(pmvBase), typeid(pmvDerived));
+
+    auto pmvInt = PolymorphicValue(LOCAL_CONST);
+
+    // todo: make this a compile-success test
+    auto pmvDerivedCopy = PolymorphicValue<Base>(pmvDerived);
+
+    // todo: make this a compile-fail test
+    // auto pmvInvalidCopy = PolymorphicValue<Base>(pmvInt);
 }

@@ -18,6 +18,7 @@ add_library(NFSE-lib STATIC
     codestyle.astylerc
 
     src/nfse.h src/nfse.cpp
+    src/base/nfseerror.h src/base/nfseerror.cpp
     src/polymorphicvalue/polymorphicvalue.h src/polymorphicvalue/polymorphicvalue.txx
 )
 

@@ -2,28 +2,61 @@
 #define POLYMORPHICVALUE_H
 
 #include <type_traits>
-#include <utility>
+
+#include "../base/nfseerror.h"
 
 namespace NFSE
 {
     template<typename T, bool enableDefaultCTor = std::is_default_constructible<T>::value>
     class PolymorphicValue
     {
+        public:
+            using value_type = std::remove_cvref<T>;
+
         private:
-            T* value;
+            T* value = nullptr;
 
         protected:
-            PolymorphicValue(T* init);
+            PolymorphicValue(T* const init);
+
+            T* emitCopy() const;
 
         public:
-            ~PolymorphicValue();
+            PolymorphicValue(const PolymorphicValue& other);
+            PolymorphicValue(PolymorphicValue&& other);
+
             PolymorphicValue(const T& init);
-            PolymorphicValue(const T&& init);
+            PolymorphicValue(T&& init);
+
+            virtual ~PolymorphicValue();
 
             template<class ... Args>
             static PolymorphicValue makeFrom(Args&& ... args);
 
             T* const expose() const;
+
+            // copy assignment
+            template <typename U>
+            requires std::derived_from<U, T>
+            PolymorphicValue<T>& operator=(const PolymorphicValue<U>& other);
+
+            // move assignment
+            template <typename U>
+            requires std::derived_from<U, T>
+            PolymorphicValue<T>& operator=(const PolymorphicValue<U>&& other);
+
+            // copy/construct assignment
+            template <typename U>
+            requires std::derived_from<U, T>
+            PolymorphicValue<T>& operator=(const U& other);
+
+            // move/construct assignment
+            template <typename U>
+            requires std::derived_from<U, T>
+            PolymorphicValue<T>& operator=(const U&& other);
+
+            // get, getAs<? extends T>
+            // cast to underlying
     };
 
     template<typename T>
@@ -31,6 +64,8 @@ namespace NFSE
     {
         public:
             PolymorphicValue();
+            PolymorphicValue(const PolymorphicValue& other);
+            PolymorphicValue(PolymorphicValue&& other);
             PolymorphicValue(const T& init);
             PolymorphicValue(const T&& init);
     };
