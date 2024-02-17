@@ -25,6 +25,11 @@ namespace NFSE
             PolymorphicValue(const PolymorphicValue& other);
             PolymorphicValue(PolymorphicValue&& other);
 
+            template <typename U> requires std::derived_from<U, T>
+            PolymorphicValue(const PolymorphicValue<U>& other);
+            template <typename U> requires std::derived_from<U, T>
+            PolymorphicValue(PolymorphicValue<U>&& other);
+
             PolymorphicValue(const T& init);
             PolymorphicValue(T&& init);
 
@@ -64,10 +69,17 @@ namespace NFSE
     {
         public:
             PolymorphicValue();
+
             PolymorphicValue(const PolymorphicValue& other);
             PolymorphicValue(PolymorphicValue&& other);
+
+            template <typename U> requires std::derived_from<U, T>
+            PolymorphicValue(const PolymorphicValue<U>& other);
+            template <typename U> requires std::derived_from<U, T>
+            PolymorphicValue(PolymorphicValue<U>&& other);
+
             PolymorphicValue(const T& init);
-            PolymorphicValue(const T&& init);
+            PolymorphicValue(T&& init);
     };
 }
 

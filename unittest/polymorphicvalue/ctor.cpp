@@ -144,30 +144,52 @@ TEST(PolymorphicValue_Suite, PMV_CopyPmvCTor_ClassType_Test)
 
 TEST(PolymorphicValue_Suite, PMV_MovePmvCTor_NonClassType_Test)
 {
+    std::cout << "### pre A" << std::endl;
     auto pmvA = PolymorphicValue(LOCAL_CONST);
+    std::cout << "### pre B" << std::endl;
     auto pmvB = PolymorphicValue(std::move(pmvA));
+    std::cout << "### post" << std::endl;
 
     ASSERT_EQ(pmvA.expose(), nullptr);
     ASSERT_NE(pmvB.expose(), nullptr);
     EXPECT_EQ(*pmvB.expose(), LOCAL_CONST);
 }
 
-struct Base {};
+struct Base
+{
+    virtual ~Base() {}
+};
 
-struct Derived : public Base {};
+struct Derived : public Base
+{
+    Derived& operator=(const Base&)
+    {
+        return *this;
+    };
+};
 
 TEST(PolymorphicValue_Suite, PMV_CopyPmvCTor_UnrelatedType_Test)
 {
     auto pmvBase = PolymorphicValue(Base());
     auto pmvDerived = PolymorphicValue<Base>(Derived());
 
-    //ASSERT_EQ(typeid(pmvBase), typeid(pmvDerived));
+    ASSERT_EQ(typeid(pmvBase), typeid(pmvDerived));
+    EXPECT_NE(pmvDerived.expose(), nullptr);
+    //EXPECT_NE(dynamic_cast<Derived*>(pmvDerived.expose()), nullptr);
 
     auto pmvInt = PolymorphicValue(LOCAL_CONST);
 
+    // TODO: some of this SHOULD work
     // todo: make this a compile-success test
-    auto pmvDerivedCopy = PolymorphicValue<Base>(pmvDerived);
+    auto pmvTrueDerived = PolymorphicValue(Derived());
+    auto pmvInitWithBase = PolymorphicValue<Base>();
+    //    pmvInitWithBase = pmvTrueDerived;
+    //    pmvTrueDerived = pmvInitWithBase;
+    //    EXPECT_NE(pmvInitWithBase.expose(), nullptr);
+    //    EXPECT_NE(dynamic_cast<Derived*>(pmvInitWithBase.expose()), nullptr);
 
     // todo: make this a compile-fail test
     // auto pmvInvalidCopy = PolymorphicValue<Base>(pmvInt);
+
+    // pmvBase = Derived();
 }
