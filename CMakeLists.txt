@@ -83,7 +83,9 @@ add_executable(NFSE-test
     main.cpp
 
     unittest/compiletest/compiletest.cpp
+
     unittest/polymorphicvalue/ctor.cpp
+    unittest/polymorphicvalue/assignment_operator.cpp
 
     ${GTestFiles}
 )

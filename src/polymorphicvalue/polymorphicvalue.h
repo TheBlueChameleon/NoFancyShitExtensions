@@ -13,15 +13,17 @@ namespace NFSE
         public:
             using value_type = std::remove_cvref<T>;
 
-        private:
+        protected:
             T* value = nullptr;
 
-        protected:
             PolymorphicValue(T* const init);
 
             T* emitCopy() const;
 
         public:
+            // .............................................................. //
+            // CTORs, DTOR
+
             PolymorphicValue(const PolymorphicValue& other);
             PolymorphicValue(PolymorphicValue&& other);
 
@@ -33,32 +35,42 @@ namespace NFSE
             PolymorphicValue(const T& init);
             PolymorphicValue(T&& init);
 
+            template <typename U> requires std::derived_from<U, T>
+            PolymorphicValue(const U& init);
+            template <typename U> requires std::derived_from<U, T>
+            PolymorphicValue(U&& init);
+
             virtual ~PolymorphicValue();
+
+            // .............................................................. //
+            // assignment operators
+
+            PolymorphicValue<T>& operator=(const PolymorphicValue& other);
+            PolymorphicValue<T>& operator=(PolymorphicValue&& other);
+
+            // copy assignment
+            template <typename U> requires std::derived_from<U, T>
+            PolymorphicValue<T>& operator=(const PolymorphicValue<U>& other);
+
+            // move assignment
+            template <typename U> requires std::derived_from<U, T>
+            PolymorphicValue<T>& operator=(const PolymorphicValue<U>&& other);
+
+            // copy/construct assignment
+            template <typename U> requires std::derived_from<U, T>
+            PolymorphicValue<T>& operator=(const U& other);
+
+            // move/construct assignment
+            template <typename U> requires std::derived_from<U, T>
+            PolymorphicValue<T>& operator=(const U&& other);
+
+            // .............................................................. //
+            // other methods
 
             template<class ... Args>
             static PolymorphicValue makeFrom(Args&& ... args);
 
             T* const expose() const;
-
-            // copy assignment
-            template <typename U>
-            requires std::derived_from<U, T>
-            PolymorphicValue<T>& operator=(const PolymorphicValue<U>& other);
-
-            // move assignment
-            template <typename U>
-            requires std::derived_from<U, T>
-            PolymorphicValue<T>& operator=(const PolymorphicValue<U>&& other);
-
-            // copy/construct assignment
-            template <typename U>
-            requires std::derived_from<U, T>
-            PolymorphicValue<T>& operator=(const U& other);
-
-            // move/construct assignment
-            template <typename U>
-            requires std::derived_from<U, T>
-            PolymorphicValue<T>& operator=(const U&& other);
 
             // get, getAs<? extends T>
             // cast to underlying
@@ -80,7 +92,19 @@ namespace NFSE
 
             PolymorphicValue(const T& init);
             PolymorphicValue(T&& init);
+
+            template <typename U> requires std::derived_from<U, T>
+            PolymorphicValue(const U& init);
+            template <typename U> requires std::derived_from<U, T>
+            PolymorphicValue(U&& init);
+
+            // .............................................................. //
+            // assignment operators
+
+            PolymorphicValue<T>& operator=(const PolymorphicValue& other);
+            PolymorphicValue<T>& operator=(PolymorphicValue&& other);
     };
+
 }
 
 #include "polymorphicvalue.txx"

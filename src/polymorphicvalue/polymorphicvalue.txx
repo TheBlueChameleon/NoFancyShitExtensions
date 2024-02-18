@@ -77,6 +77,22 @@ namespace NFSE
         std::cout << "move value CTor" << std::endl;
     }
 
+    template<typename T, bool enableDefaultCTor>
+    template<typename U> requires std::derived_from<U, T>
+    PolymorphicValue<T, enableDefaultCTor>::PolymorphicValue(const U& init):
+        PolymorphicValue<T, false>(new U(init))
+    {
+        std::cout << "copy value CTor <U>" << std::endl;
+    }
+
+    template<typename T, bool enableDefaultCTor>
+    template<typename U> requires std::derived_from<U, T>
+    PolymorphicValue<T, enableDefaultCTor>::PolymorphicValue(U&& init) :
+        PolymorphicValue<T, false>(new U(std::move(init)))
+    {
+        std::cout << "move value CTor <U>" << std::endl;
+    }
+
     // ---------------------------------------------------------------------- //
     // DTor
 
@@ -98,20 +114,6 @@ namespace NFSE
         PolymorphicValue<T, false>(new T())
     {
         std::cout << "default CTor" << std::endl;
-    }
-
-    template<typename T>
-    PolymorphicValue<T, true>::PolymorphicValue(const T& init) :
-        PolymorphicValue<T, false>(init)
-    {
-        std::cout << "copy value CTor true" << std::endl;
-    }
-
-    template<typename T>
-    PolymorphicValue<T, true>::PolymorphicValue(T&& init) :
-        PolymorphicValue<T, false>(std::move(init))
-    {
-        std::cout << "move value CTor true" << std::endl;
     }
 
     template<typename T>
@@ -144,23 +146,38 @@ namespace NFSE
         std::cout << "Move CTor<U> true" << std::endl;
     }
 
+    template<typename T>
+    PolymorphicValue<T, true>::PolymorphicValue(const T& init) :
+        PolymorphicValue<T, false>(init)
+    {
+        std::cout << "copy value CTor true" << std::endl;
+    }
+
+    template<typename T>
+    PolymorphicValue<T, true>::PolymorphicValue(T&& init) :
+        PolymorphicValue<T, false>(std::move(init))
+    {
+        std::cout << "move value CTor true" << std::endl;
+    }
+
+    template<typename T>
+    template<typename U> requires std::derived_from<U, T>
+    PolymorphicValue<T, true>::PolymorphicValue(const U& init) :
+        PolymorphicValue<T, false>(init)
+    {
+        std::cout << "move value CTor <U> true" << std::endl;
+    }
+
+    template<typename T>
+    template<typename U> requires std::derived_from<U, T>
+    PolymorphicValue<T, true>::PolymorphicValue(U&& init) :
+        PolymorphicValue<T, false>(std::move(init))
+    {
+        std::cout << "move value CTor <U> true" << std::endl;
+    }
+
     // ====================================================================== //
-    // Methods
-
-    template<typename T, bool enableDefaultCTor>
-    template<class ... Args>
-    PolymorphicValue<T, enableDefaultCTor>
-    PolymorphicValue<T, enableDefaultCTor>::makeFrom(Args&& ... args)
-    {
-        std::cout << "emplace" << std::endl;
-        return PolymorphicValue<T, enableDefaultCTor>(new T(args ...));
-    }
-
-    template<typename T, bool enableDefaultCTor>
-    T* const PolymorphicValue<T, enableDefaultCTor>::expose() const
-    {
-        return this->value;
-    }
+    // Assignment Operators
 
     template<typename T, bool enableDefaultCTor>
     template<typename U> requires std::derived_from<U, T>
@@ -190,11 +207,10 @@ namespace NFSE
             {
                 delete value;
                 this->value = other.value;
-                other.value = nullptr;
             }
             else
             {
-                return (*this = std::move(u));
+                *this = std::move(u);
             }
         }
         else
@@ -203,6 +219,7 @@ namespace NFSE
             other.value = nullptr;
         }
 
+        other.value = nullptr;
         return *this;
     }
 
@@ -224,12 +241,12 @@ namespace NFSE
             else
             {
                 delete this->value;
-                this->value = new T(other);
+                this->value = new U(other);
             }
         }
         else
         {
-            this->value = new T(other);
+            this->value = new U(other);
         }
 
         return *this;
@@ -262,5 +279,68 @@ namespace NFSE
         }
 
         return *this;
+    }
+
+    template<typename T, bool enableDefaultCTor>
+    PolymorphicValue<T>&
+    PolymorphicValue<T, enableDefaultCTor>::operator=(const PolymorphicValue& other)
+    {
+        std::cout << "copy assignment" << std::endl;
+        return *this;
+    }
+
+    template<typename T, bool enableDefaultCTor>
+    PolymorphicValue<T>&
+    PolymorphicValue<T, enableDefaultCTor>::operator=(PolymorphicValue&& other)
+    {
+        std::cout << "move assignment" << std::endl;
+        return *this;
+    }
+
+    // ---------------------------------------------------------------------- //
+    // enableDefaultCTor=true variation
+
+    template<typename T>
+    PolymorphicValue<T>&
+    PolymorphicValue<T, true>::operator=(const PolymorphicValue& other)
+    {
+        std::cout << "copy assignment true" << std::endl;
+        if (this->value)
+        {
+            *(this->value) = *(other.value);
+        }
+        else
+        {
+            this->value = other.emitCopy();
+        }
+        return *this;
+    }
+
+    template<typename T>
+    PolymorphicValue<T>&
+    PolymorphicValue<T, true>::operator=(PolymorphicValue<T, true>&& other)
+    {
+        std::cout << "move assignment true" << std::endl;
+        this->value = other.value;
+        other.value = nullptr;
+        return *this;
+    }
+
+    // ====================================================================== //
+    // Methods
+
+    template<typename T, bool enableDefaultCTor>
+    template<class ... Args>
+    PolymorphicValue<T, enableDefaultCTor>
+    PolymorphicValue<T, enableDefaultCTor>::makeFrom(Args&& ... args)
+    {
+        std::cout << "emplace" << std::endl;
+        return PolymorphicValue<T, enableDefaultCTor>(new T(args ...));
+    }
+
+    template<typename T, bool enableDefaultCTor>
+    T* const PolymorphicValue<T, enableDefaultCTor>::expose() const
+    {
+        return this->value;
     }
 }
